@@ -13,7 +13,7 @@ node serve.mjs
 
 http://127.0.0.1:5184/ 。点画面开始。右上角「参数」调窗口环：转速、层数、散片。H 收起。`?nogui` 关掉。调过的值存在浏览器 localStorage。默认 3 层、4 片散片、转速 0.28，随拍乱切关掉。
 
-音轨是 Mili《world.execute(me);》人声版，130 BPM，第一拍在 5.31s（片头静音约 5.2s）。格子 16 分音符跟 `audio.currentTime` 对齐，不再用独立的 Tone 时钟。词曲与录音版权归 @ProjectMili 及原权利人所有；本页非营利、非官方，含 AI 生成画面。完整署名见 `docs/music.md`，右下角 credits 也有同一段。规约：https://projectmili.com/copyright-guidelines
+音轨是 Mili《world.execute(me);》人声版，130 BPM，第一拍在 5.31s（片头静音约 5.2s）。格子 16 分音符跟 `audio.currentTime` 对齐，不再用独立的 Tone 时钟。片头静音时左下角走 ASCII 倒计时 5→1→GO，不 seek、不改播放。词曲与录音版权归 @ProjectMili 及原权利人所有；本页非营利、非官方，含 AI 生成画面。完整署名见 `docs/music.md`，右下角 credits 也有同一段。规约：https://projectmili.com/copyright-guidelines
 
 ## 你丢图的地方
 

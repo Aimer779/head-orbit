@@ -1,6 +1,8 @@
 // Bottom-left console: timed lyrics for world.execute(me);. ORCA still draws off-screen for the ring.
 
 import { tickLyrics } from './lyrics.js';
+import { inCountdown } from './countdown.js';
+import { SOUNDTRACK } from './audio.js';
 
 const GRAINS = 8;
 
@@ -19,23 +21,24 @@ export function refreshDeck(player) {
   const bowl = document.getElementById('deck-bowl');
   if (!bowl) return;
 
-  const dur = player.track?.duration;
-  const t = player.track?.currentTime || 0;
-  const fill = player.playing && dur > 0 ? t / dur : (player.started ? 0.12 : 0);
-  const n = Math.round(Math.min(1, Math.max(0, fill)) * GRAINS);
-  bowl.textContent = '飯'.repeat(n) + '・'.repeat(GRAINS - n);
+  fillBowl(player, bowl);
 
   tickLyrics(player);
 }
 
+function fillBowl(player, bowl) {
+  const dur = player.track?.duration;
+  const t = player.track?.currentTime || 0;
+  let fill = 0;
+  if (inCountdown(player)) fill = t / SOUNDTRACK.offset;
+  else if (player.playing && dur > 0) fill = t / dur;
+  else if (player.started) fill = 0.12;
+  const n = Math.round(Math.min(1, Math.max(0, fill)) * GRAINS);
+  bowl.textContent = '飯'.repeat(n) + '・'.repeat(GRAINS - n);
+}
+
 export function tickDeck(player) {
   const bowl = document.getElementById('deck-bowl');
-  if (bowl && player.track) {
-    const dur = player.track.duration;
-    const t = player.track.currentTime || 0;
-    const fill = player.playing && dur > 0 ? t / dur : (player.started ? 0.12 : 0);
-    const n = Math.round(Math.min(1, Math.max(0, fill)) * GRAINS);
-    bowl.textContent = '飯'.repeat(n) + '・'.repeat(GRAINS - n);
-  }
+  if (bowl && player.track) fillBowl(player, bowl);
   tickLyrics(player);
 }

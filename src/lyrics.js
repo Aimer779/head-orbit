@@ -1,4 +1,5 @@
 import { SOUNDTRACK } from './audio.js';
+import { tickCountdown } from './countdown.js';
 
 const SRC = 'assets/lyrics/world-execute-me.json';
 const OFFICIAL_KICK = 0.46;
@@ -54,6 +55,8 @@ function fillLangs(el, cue) {
 }
 
 export function tickLyrics(player) {
+  if (tickCountdown(player)) return;
+
   const prev = document.getElementById('lyric-prev');
   const now = document.getElementById('lyric-now');
   const next = document.getElementById('lyric-next');
