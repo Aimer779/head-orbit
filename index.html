@@ -9,25 +9,32 @@
   <style>
     html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
     canvas { display: block; touch-action: none; }
-    #deck { position: fixed; left: 16px; bottom: 16px; width: min(46vw, 560px);
+    #deck { position: fixed; left: 20px; bottom: 20px; width: min(42vw, 760px);
       mix-blend-mode: screen; color: #cfe8ec; cursor: pointer;
-      font: 12px/1.45 "Microsoft YaHei", "Noto Sans SC", "PingFang SC", sans-serif;
+      font: 15px/1.4 "Microsoft YaHei", "Yu Gothic", "Meiryo", "Noto Sans SC", "Noto Sans JP", sans-serif;
       user-select: none; }
     #deck.hidden { display: none; }
-    #deck header, #deck footer { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
-    #deck header { padding: 0 1px 6px; color: #7ad4de; letter-spacing: 0.04em; }
+    #deck header, #deck footer { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
+    #deck header { padding: 0 1px 10px; color: #7ad4de; letter-spacing: 0.04em;
+      font-size: clamp(16px, 1.5vw, 22px); }
     #deck header strong { font-weight: 600; }
-    #deck header span { color: #8aa8b0; }
+    #deck header span { color: #8aa8b0; font-size: 0.85em; }
     #orca { display: none; }
-    #deck-lyrics { min-height: 5.6em; padding: 2px 1px 4px; }
-    #deck-lyrics .lyric { margin: 0; min-height: 1.2em; }
-    #deck-lyrics .dim { opacity: 0.55; font-size: 12px; color: #cfe8ec;
-      font-family: "Input Mono", "Menlo", "Consolas", monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #deck-lyrics .now { margin: 0.28em 0; color: #e8eef2; }
-    #deck-lyrics .now .en { display: block; font: 600 17px/1.25 "Input Mono", "Menlo", "Consolas", monospace; letter-spacing: 0.01em; }
-    #deck-lyrics .now .zh { display: block; margin-top: 0.2em; font-size: 12px; color: #7ad4de; }
-    #deck-lyrics .now.keyword .en { color: #e6c07a; letter-spacing: 0.14em; }
-    #deck footer { padding-top: 6px; color: #8aa8b0; font-size: 11px; }
+    #deck-lyrics { min-height: 14em; padding: 4px 1px 8px; }
+    #deck-lyrics .lyric { margin: 0; }
+    #deck-lyrics span:empty { display: none !important; }
+    #deck-lyrics .dim { opacity: 0.68; font-size: clamp(13px, 1.15vw, 18px); color: #cfe8ec; }
+    #deck-lyrics .dim span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #deck-lyrics .dim .ja { font-family: "Yu Gothic", "Meiryo", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+    #deck-lyrics .dim .en { font-family: "Input Mono", "Menlo", "Consolas", monospace; }
+    #deck-lyrics .now { margin: 0.45em 0; color: #e8eef2; }
+    #deck-lyrics .now span { display: block; }
+    #deck-lyrics .now .zh { font-size: clamp(16px, 1.65vw, 24px); color: #7ad4de; }
+    #deck-lyrics .now .ja { margin-top: 0.12em; font-size: clamp(16px, 1.65vw, 24px); color: #c9b8e6;
+      font-family: "Yu Gothic", "Meiryo", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+    #deck-lyrics .now .en { margin-top: 0.22em; font: 650 clamp(26px, 2.9vw, 44px)/1.15 "Input Mono", "Menlo", "Consolas", monospace; letter-spacing: 0.01em; }
+    #deck-lyrics .now.keyword .en { color: #e6c07a; letter-spacing: 0.1em; }
+    #deck footer { padding-top: 10px; color: #8aa8b0; font-size: clamp(12px, 1.1vw, 15px); }
     #deck-bowl { color: #e6c07a; letter-spacing: 0.12em; }
     #deck-hint { opacity: 0.55; }
     #credits { position: fixed; right: 16px; bottom: 16px; margin: 0; text-align: right;
@@ -46,6 +53,8 @@
     }
     #credits dd.music-notice::after { content: none; }
     @media (max-width: 640px) {
+      #deck { width: min(92vw, 720px); left: 12px; bottom: 12px; }
+      #deck-lyrics .now .en { font-size: clamp(22px, 7vw, 32px); }
       #credits { font-size: 9px; max-width: 46vw; bottom: 12px; right: 10px; }
       #credits dt { display: block; }
       #credits dd { margin: 0 0 0.4em; }
@@ -70,9 +79,9 @@
       <span id="deck-line">点一下开饭</span>
     </header>
     <div id="deck-lyrics">
-      <p id="lyric-prev" class="lyric dim"></p>
-      <p id="lyric-now" class="lyric now"><span class="en">world.execute(me);</span><span class="zh">点一下开饭</span></p>
-      <p id="lyric-next" class="lyric dim">Switch on the power line</p>
+      <p id="lyric-prev" class="lyric dim"><span class="zh"></span><span class="ja"></span><span class="en"></span></p>
+      <p id="lyric-now" class="lyric now"><span class="zh">点一下开饭</span><span class="ja"></span><span class="en">world.execute(me);</span></p>
+      <p id="lyric-next" class="lyric dim"><span class="zh"></span><span class="ja"></span><span class="en">Switch on the power line</span></p>
     </div>
     <div id="deck-grid" hidden></div>
     <footer>

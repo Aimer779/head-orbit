@@ -43,6 +43,16 @@ function isKeyword(text) {
   return s.length >= 2 && s === s.toUpperCase() && /[A-Z]/.test(s);
 }
 
+function fillLangs(el, cue) {
+  if (!el) return;
+  const zh = el.querySelector('.zh');
+  const ja = el.querySelector('.ja');
+  const en = el.querySelector('.en');
+  if (zh) zh.textContent = cue?.zh || '';
+  if (ja) ja.textContent = cue?.ja || '';
+  if (en) en.textContent = cue?.en || '';
+}
+
 export function tickLyrics(player) {
   const prev = document.getElementById('lyric-prev');
   const now = document.getElementById('lyric-now');
@@ -58,22 +68,21 @@ export function tickLyrics(player) {
   const before = i > 0 ? cues[i - 1] : null;
   const after = i >= 0 && i + 1 < cues.length ? cues[i + 1] : cues[0];
 
-  prev.textContent = before ? before.en : '';
-  next.textContent = after && after !== cur ? after.en : '';
+  fillLangs(prev, before);
+  fillLangs(next, after && after !== cur ? after : null);
 
-  const en = now.querySelector('.en');
-  const zh = now.querySelector('.zh');
   if (!player.started) {
-    en.textContent = 'world.execute(me);';
-    zh.textContent = '点一下开饭';
+    fillLangs(now, { zh: '点一下开饭', ja: '', en: 'world.execute(me);' });
     now.classList.remove('keyword');
   } else if (!cur) {
-    en.textContent = 'world.execute(me);';
-    zh.textContent = player.playing ? '' : '测完告诉我就行';
+    fillLangs(now, {
+      zh: player.playing ? '' : '测完告诉我就行',
+      ja: '',
+      en: 'world.execute(me);',
+    });
     now.classList.remove('keyword');
   } else {
-    en.textContent = cur.en;
-    zh.textContent = cur.zh || '';
+    fillLangs(now, cur);
     now.classList.toggle('keyword', isKeyword(cur.en));
   }
 
