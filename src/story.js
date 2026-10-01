@@ -1,5 +1,5 @@
 // Window-ring story beats. Community DeepSeek-chan scenes, not an official mascot.
-// Copy from docs/whale-story.md (2026-10-01).
+// Copy from docs/deepseek-whalechan-story-report.md (2026-10-01).
 
 export const SCENES = [
   { id: 'boot', title: 'PERSONA_LOAD', prompt: '加载人格', bowl: 0.2 },

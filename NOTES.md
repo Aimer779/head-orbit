@@ -18,7 +18,7 @@ http://127.0.0.1:5184/ 。点画面开始。`?gui` 开参数。
 ## 你丢图的地方
 
 1. 人物两层：`assets/character.png` 捂眼，`assets/character-tear.png` 含泪挡嘴。平时捂眼；便宜货 / 用户怒了 / DeepSleep 溶到含泪。军鼓闪切时捂眼层按行撕裂，底下眼睛露一下。
-2. 窗口环现在是故事窗，不是占位框。素材在 `docs/whale-story.md`。两小节切一场：开机人格 → 思考链 → 便宜货 → 饭碗 → 摸鱼下班 → 用户怒了 → DeepSleep，再循环。中间有一块活的 CoT 在滚字。
+2. 窗口环现在是故事窗，不是占位框。完整报告在 `docs/deepseek-whalechan-story-report.md`，摘要在 `docs/whale-story.md`。两小节切一场：开机人格 → 思考链 → 便宜货 → 饭碗 → 摸鱼下班 → 用户怒了 → DeepSleep，再循环。中间有一块活的 CoT 在滚字。
 
 3. 仍可把图丢进 `assets/panels/` 并写进 `content.json` 的 `panels`，会和故事窗混着抽。贴纸用 `"transparent": true`。
 
