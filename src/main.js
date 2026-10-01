@@ -7,7 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SavePass } from 'three/addons/postprocessing/SavePass.js';
 import GUI from 'lil-gui';
-import { randomPanel, loadPanelImages, liveCotSource, tickStoryVisuals, makeEmojiPanel } from './panels.js';
+import { randomPanel, loadPanelImages, liveCotSource, tickStoryVisuals, makeEmojiPanel, makeLogoPanel } from './panels.js';
 import { advanceStory, scene as storyScene, paintGridBanner } from './story.js';
 import { loadPixelWhale, tickPixelWhale, livePixelSource, setPixelMoodFromScene } from './pixel-whale.js';
 import { loadDiveWhale, tickDiveWhale, liveDiveSource, requestDiveFromScene } from './dive-whale.js';
@@ -43,6 +43,11 @@ const params = {
   cotPanels: 1,         // live CoT window on the ring
   pixelPanels: 1,       // lhh010 pixel whale
   divePanels: 1,        // Harness dive / classic webp
+  deepseekLogos: 1,
+  claudeLogos: 1,
+  gptLogos: 1,
+  grokLogos: 1,
+  geminiLogos: 1,
   orcaOverlay: true,    // lyrics overlay, bottom-left (O)
   beatShuffle: false,   // re-roll the look on the beat (B)
   shuffleEvery: 4,      // beats between re-rolls
@@ -75,7 +80,7 @@ const SHUFFLE_COUNTS = {
 };
 
 const RING_STORE = 'head-orbit-ring';
-const RING_KEYS = ['rotationSpeed', 'wobble', 'bands', 'floaters', 'beatShuffle', 'shuffleEvery', 'reactivity', 'orcaPanels', 'cotPanels', 'pixelPanels', 'divePanels'];
+const RING_KEYS = ['rotationSpeed', 'wobble', 'bands', 'floaters', 'beatShuffle', 'shuffleEvery', 'reactivity', 'orcaPanels', 'cotPanels', 'pixelPanels', 'divePanels', 'deepseekLogos', 'claudeLogos', 'gptLogos', 'grokLogos', 'geminiLogos'];
 
 function loadRingPrefs() {
   try {
@@ -489,6 +494,30 @@ function addDiveGrid(i, n) {
   }));
 }
 
+const LOGO_IDS = ['deepseek', 'claude', 'gpt', 'grok', 'gemini'];
+const logoGrids = { deepseek: [], claude: [], gpt: [], grok: [], gemini: [] };
+
+function addBrandLogo(id, i, n) {
+  const source = makeLogoPanel(id);
+  if (!source) return;
+  logoGrids[id].push(addPanel({
+    y: THREE.MathUtils.randFloat(-0.35, 0.38),
+    thetaStart: (LOGO_IDS.indexOf(id) / LOGO_IDS.length) * Math.PI * 2 + (i / Math.max(n, 1)) * 0.45,
+    radius: 1.21,
+    source,
+  }));
+}
+
+function syncLogoGrids() {
+  for (const id of LOGO_IDS) {
+    const want = params[id + 'Logos'] || 0;
+    const arr = logoGrids[id];
+    if (arr.length === want) continue;
+    arr.splice(0).forEach(disposePanel);
+    for (let i = 0; i < want; i++) addBrandLogo(id, i, want);
+  }
+}
+
 // bring the scene in line with params.bands / floaters / orcaPanels, touching only what changed
 function syncLayout(snap = false) {
   const bandsBefore = bandRings.length;
@@ -521,6 +550,8 @@ function syncLayout(snap = false) {
     diveGrids.splice(0).forEach(disposePanel);
     for (let i = 0; i < params.divePanels; i++) addDiveGrid(i, params.divePanels);
   }
+
+  syncLogoGrids();
 }
 
 const emojiStickers = [];
@@ -537,6 +568,7 @@ function addEmojiSticker() {
 function buildPanels() {
   [...panels].forEach(disposePanel);
   bandRings.length = floaters.length = orcaGrids.length = cotGrids.length = pixelGrids.length = diveGrids.length = emojiStickers.length = 0;
+  for (const id of LOGO_IDS) logoGrids[id].length = 0;
   freeRadii = [...RADII];
   syncLayout(true);
   addEmojiSticker();
@@ -544,7 +576,7 @@ function buildPanels() {
 }
 
 function swapTexture(panel) {
-  if (panel.live || panel.kind === 'emoji') return;
+  if (panel.live || panel.kind === 'emoji' || String(panel.kind).startsWith('logo-')) return;
   const p = randomPanel();
   const old = panel.mat.uniforms.map.value;
   panel.mat.uniforms.map.value = makeTexture(p.canvas);
@@ -599,6 +631,13 @@ fRing.add(params, 'orcaPanels', 0, 6, 1).name('ORCA 窗').onFinishChange(() => {
 fRing.add(params, 'cotPanels', 0, 4, 1).name('思考窗').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
 fRing.add(params, 'pixelPanels', 0, 4, 1).name('像素鲸').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
 fRing.add(params, 'divePanels', 0, 4, 1).name('下潜鲸').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+const fLogo = fRing.addFolder('标志窗');
+fLogo.add(params, 'deepseekLogos', 0, 4, 1).name('DeepSeek').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fLogo.add(params, 'claudeLogos', 0, 4, 1).name('Claude').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fLogo.add(params, 'gptLogos', 0, 4, 1).name('GPT').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fLogo.add(params, 'grokLogos', 0, 4, 1).name('Grok').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fLogo.add(params, 'geminiLogos', 0, 4, 1).name('Gemini').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fLogo.open();
 fRing.add(params, 'beatShuffle').name('随拍乱切 (B)').listen().onChange(saveRingPrefs);
 fRing.add(params, 'shuffleEvery', [1, 2, 4, 8, 16]).name('乱切间隔').onFinishChange(saveRingPrefs);
 fRing.add({ 重铺面板: () => buildPanels() }, '重铺面板');

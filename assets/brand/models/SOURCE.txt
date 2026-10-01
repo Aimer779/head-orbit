@@ -1,0 +1,13 @@
+Local copies of four LLM marks for story panels (wrong-model / cheap beats).
+
+Files (from @lobehub/icons-static-svg@1.74.0, MIT — see LOBE-ICONS-LICENSE):
+  claude.svg  icons/claude-color.svg
+  gpt.svg     icons/openai.svg        (GPT / OpenAI blossom)
+  grok.svg    icons/grok.svg
+  gemini.svg  icons/gemini-color.svg
+
+https://github.com/lobehub/lobe-icons
+https://unpkg.com/@lobehub/icons-static-svg@1.74.0/icons/
+
+Trademarks stay with Anthropic, OpenAI, xAI, and Google.
+Unofficial local remix only. Not affiliated.

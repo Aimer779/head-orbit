@@ -15,10 +15,17 @@ const GOLD = '#e6c07a';
 
 const pool = [];
 const brand = { wordmark: null };
+const MODELS = [
+  { id: 'claude', src: 'assets/brand/models/claude.svg', name: 'Claude', house: 'Anthropic' },
+  { id: 'gpt', src: 'assets/brand/models/gpt.svg', name: 'GPT', house: 'OpenAI' },
+  { id: 'grok', src: 'assets/brand/models/grok.svg', name: 'Grok', house: 'xAI' },
+  { id: 'gemini', src: 'assets/brand/models/gemini.svg', name: 'Gemini', house: 'Google' },
+];
+const models = [];
 
 const EMOJI = {
-  always: ['🐋', '🐳', '🍚', '💙', '🙈'],
-  boot: ['🐋', '✨', '🪪'],
+  always: ['🍚', '💙', '🙈'],
+  boot: ['✨', '🪪'],
   think: ['💭', '🧠', '🌀', '📝'],
   cheap: ['💸', '🏷️', '😤'],
   rice: ['🍚', '🥢', '🥣', '😋'],
@@ -311,14 +318,30 @@ function drawContained(g, img, x, y, boxW, boxH) {
   g.drawImage(img, x + (boxW - dw) / 2, y + (boxH - dh) / 2, dw, dh);
 }
 
-function logoCard() {
-  const [c, g] = make(520, 200);
-  g.fillStyle = '#0a1020';
-  g.fillRect(0, 0, 520, 200);
-  g.strokeStyle = '#1c2a4a';
-  g.strokeRect(8.5, 8.5, 503, 183);
-  drawContained(g, brand.wordmark, 24, 28, 472, 144);
+function paintLogoCard(img) {
+  const w = Math.max(1, img.naturalWidth || img.width || 256);
+  const h = Math.max(1, img.naturalHeight || img.height || 256);
+  const [c, g] = make(w, h);
+  g.clearRect(0, 0, w, h);
+  g.drawImage(img, 0, 0, w, h);
+  const data = g.getImageData(0, 0, w, h);
+  const px = data.data;
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i] < 22 && px[i + 1] < 22 && px[i + 2] < 22) px[i + 3] = 0;
+  }
+  g.putImageData(data, 0, 0);
   return c;
+}
+
+function logoCard() {
+  if (!brand.wordmark) return errorDialog();
+  return paintLogoCard(brand.wordmark);
+}
+
+export function makeLogoPanel(id) {
+  const img = id === 'deepseek' ? brand.wordmark : models.find((m) => m.id === id)?.img;
+  if (!img) return null;
+  return { canvas: paintLogoCard(img), transparent: true, kind: 'logo-' + id };
 }
 
 function emojiSticker() {
@@ -600,6 +623,14 @@ export function liveCotSource() {
 export async function loadPanelImages() {
   pool.length = 0;
   try { brand.wordmark = await loadImage('assets/brand/logo.png'); } catch { brand.wordmark = null; }
+  models.length = 0;
+  for (const item of MODELS) {
+    try {
+      models.push({ ...item, img: await loadImage(item.src) });
+    } catch {
+      console.warn('[model icon skip]', item.src);
+    }
+  }
   for (const item of content.panels) {
     if (!item?.src) continue;
     try {
