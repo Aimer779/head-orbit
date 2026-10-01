@@ -21,6 +21,9 @@ const types = {
   ".woff2": "font/woff2",
   ".txt": "text/plain; charset=utf-8",
   ".md": "text/plain; charset=utf-8",
+  ".mp3": "audio/mpeg",
+  ".mp4": "video/mp4",
+  ".ogg": "audio/ogg",
 };
 
 function resolveFile(urlPath) {

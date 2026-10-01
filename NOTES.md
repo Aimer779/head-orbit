@@ -13,9 +13,11 @@ node serve.mjs
 
 http://127.0.0.1:5184/ 。点画面开始。`?gui` 开参数。
 
+音轨是 Mili《world.execute(me);》伴奏，130 BPM，第一拍在 0.46s。格子 16 分音符跟 `audio.currentTime` 对齐，不再用独立的 Tone 时钟。
+
 ## 你丢图的地方
 
-1. 人物：`assets/character.png` 来自 `E:\Downloads\Shy_Whaletail_Maid_in_Monochrome.png`（1254²，透明底）。头心 `[629, 430]` 对在捂脸双手稍上。有透明通道会关掉黑底抠像，深色头发不会被抠穿。换图时改 `character.headPx` / `sizePx`。
+1. 人物两层：`assets/character.png` 捂眼，`assets/character-tear.png` 含泪挡嘴。平时捂眼；便宜货 / 用户怒了 / DeepSleep 溶到含泪。军鼓闪切时捂眼层按行撕裂，底下眼睛露一下。
 2. 窗口环现在是故事窗，不是占位框。素材在 `docs/whale-story.md`。两小节切一场：开机人格 → 思考链 → 便宜货 → 饭碗 → 摸鱼下班 → 用户怒了 → DeepSleep，再循环。中间有一块活的 CoT 在滚字。
 
 3. 仍可把图丢进 `assets/panels/` 并写进 `content.json` 的 `panels`，会和故事窗混着抽。贴纸用 `"transparent": true`。

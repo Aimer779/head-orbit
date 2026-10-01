@@ -12,7 +12,7 @@ import { advanceStory, scene as storyScene, paintGridBanner } from './story.js';
 import { loadPixelWhale, tickPixelWhale, livePixelSource, setPixelMoodFromScene } from './pixel-whale.js';
 import { loadDiveWhale, tickDiveWhale, liveDiveSource, requestDiveFromScene } from './dive-whale.js';
 import { CRTShader } from './post.js';
-import { OrcaPlayer } from './audio.js';
+import { OrcaPlayer, SOUNDTRACK } from './audio.js';
 import { GazeCamera } from './gaze.js';
 import { loadContent, applyCredits, content } from './content.js';
 import { drawPlaceholderCharacter } from './placeholder-character.js';
@@ -81,15 +81,14 @@ const player = new OrcaPlayer();
 mountDeck(player);
 
 // credits follow the song that's playing
-function showSong(song) {
-  document.getElementById('song-title').textContent = song.title;
+function showSoundtrack() {
+  document.getElementById('song-title').textContent = SOUNDTRACK.title;
   const artist = document.getElementById('song-artist');
-  artist.textContent = song.artist;
-  artist.href = song.link;
+  artist.textContent = SOUNDTRACK.artist;
+  artist.removeAttribute('href');
 }
-showSong(player.song);
-player.on('song', (song) => {
-  showSong(song);
+showSoundtrack();
+player.on('song', () => {
   paintGridBanner(player.orca);
   refreshDeck(player);
 });
@@ -129,53 +128,78 @@ scene.add(gaze.group);
 const CHARACTER = {
   headPx: [512, 380],
   sizePx: [1024, 1024],
+  tearHeadPx: [626, 400],
+  tearSizePx: [1230, 1278],
   worldWidth: 3.3,
 };
+
+const TEAR_SCENES = new Set(['cheap', 'glitch', 'sleep']);
+let characterReveal = 0;
 
 function applyCharacterSpec() {
   const spec = content.character;
   CHARACTER.headPx = spec.headPx;
   CHARACTER.sizePx = spec.sizePx;
+  CHARACTER.tearHeadPx = spec.tearHeadPx || spec.headPx;
+  CHARACTER.tearSizePx = spec.tearSizePx || spec.sizePx;
   CHARACTER.worldWidth = spec.worldWidth;
 }
 
-const characterMat = new THREE.ShaderMaterial({
-  uniforms: {
-    map: { value: null },
-    uKeyBlack: { value: params.keyBlack ? 1 : 0 },
-    uBrightness: { value: 0.82 },
-  },
-  vertexShader: /* glsl */`
-    varying vec2 vUv;
-    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-  `,
-  fragmentShader: /* glsl */`
-    uniform sampler2D map;
-    uniform float uKeyBlack, uBrightness;
-    varying vec2 vUv;
-    void main() {
-      vec4 tex = texture2D(map, vUv);
-      float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-      float a = tex.a;
-      if (uKeyBlack > 0.5) a *= smoothstep(0.03, 0.09, lum);
-      if (a < 0.5) discard;
-      float fade = smoothstep(0.0, 0.14, vUv.y);           // dissolve the image's bottom edge into the background
-      gl_FragColor = vec4(vec3(lum) * uBrightness, fade);   // force grayscale
-      #include <colorspace_fragment>
-    }
-  `,
-  transparent: true,
-});
+function makeCharacterMat(glitchable) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      map: { value: null },
+      uKeyBlack: { value: params.keyBlack ? 1 : 0 },
+      uBrightness: { value: 0.82 },
+      uReveal: { value: 0 },
+      uGlitch: { value: 0 },
+      uTime: { value: 0 },
+    },
+    vertexShader: /* glsl */`
+      varying vec2 vUv;
+      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+    `,
+    fragmentShader: [
+      'uniform sampler2D map;',
+      'uniform float uKeyBlack, uBrightness, uReveal, uGlitch, uTime;',
+      'varying vec2 vUv;',
+      'float hash(float n) { return fract(sin(n) * 43758.5453); }',
+      'void main() {',
+      '  vec4 tex = texture2D(map, vUv);',
+      '  float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));',
+      '  float a = tex.a;',
+      '  if (uKeyBlack > 0.5) a *= smoothstep(0.03, 0.09, lum);',
+      glitchable
+        ? '  float row = floor(vUv.y * 22.0); float hole = step(0.58, hash(row + floor(uTime * 28.0) + 2.7)) * uGlitch; a *= (1.0 - uReveal) * (1.0 - hole);'
+        : '',
+      '  if (a < 0.5) discard;',
+      '  float fade = smoothstep(0.0, 0.14, vUv.y);',
+      '  gl_FragColor = vec4(vec3(lum) * uBrightness, fade);',
+      '#include <colorspace_fragment>',
+      '}',
+    ].join('\n'),
+    transparent: true,
+    depthWrite: false,
+  });
+}
+
+const tearMat = makeCharacterMat(false);
+const characterMat = makeCharacterMat(true);
+const characterTear = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), tearMat);
 const character = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), characterMat);
+characterTear.position.z = -0.002;
+characterTear.renderOrder = 0;
+character.renderOrder = 1;
+scene.add(characterTear);
 scene.add(character);
 
-function layoutCharacter(imgW, imgH) {
-  // if a different image is supplied, assume head center sits at the same relative position
+function layoutCharacterMesh(mesh, headPx, sizePx, imgW, imgH) {
   const s = CHARACTER.worldWidth / imgW;
-  const hx = (CHARACTER.headPx[0] / CHARACTER.sizePx[0]) * imgW;
-  const hy = (CHARACTER.headPx[1] / CHARACTER.sizePx[1]) * imgH;
-  character.scale.set(imgW * s, imgH * s, 1);
-  character.position.set(-(hx - imgW / 2) * s, (hy - imgH / 2) * s, 0);
+  const hx = (headPx[0] / sizePx[0]) * imgW;
+  const hy = (headPx[1] / sizePx[1]) * imgH;
+  mesh.scale.set(imgW * s, imgH * s, 1);
+  mesh.position.x = -(hx - imgW / 2) * s;
+  mesh.position.y = (hy - imgH / 2) * s;
 }
 
 function hasAlpha(img) {
@@ -188,36 +212,49 @@ function hasAlpha(img) {
   return false;
 }
 
-function setCharacterMap(tex, image, label) {
+function prepCharacterTex(tex) {
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  characterMat.uniforms.map.value = tex;
+  return tex;
+}
+
+function setCoverMap(tex, image, label) {
+  characterMat.uniforms.map.value = prepCharacterTex(tex);
   params.keyBlack = !hasAlpha(image);
   syncParams();
   gui.controllersRecursive().forEach((c) => c.updateDisplay());
-  layoutCharacter(image.width, image.height);
+  layoutCharacterMesh(character, CHARACTER.headPx, CHARACTER.sizePx, image.width, image.height);
   console.log('[character]', label);
+}
+
+function setTearMap(tex, image, label) {
+  tearMat.uniforms.map.value = prepCharacterTex(tex);
+  layoutCharacterMesh(characterTear, CHARACTER.tearHeadPx, CHARACTER.tearSizePx, image.width, image.height);
+  characterTear.position.z = -0.002;
+  console.log('[character tear]', label);
 }
 
 function loadPlaceholderCharacter() {
   const canvas = drawPlaceholderCharacter();
-  setCharacterMap(new THREE.CanvasTexture(canvas), canvas, 'placeholder');
+  setCoverMap(new THREE.CanvasTexture(canvas), canvas, 'placeholder');
+}
+
+function loadUrlChain(urls, onOk, onFail) {
+  const loader = new THREE.TextureLoader();
+  const queue = [...urls];
+  const tryLoad = () => {
+    const url = queue.shift();
+    if (!url) { onFail(); return; }
+    loader.load(url, (tex) => onOk(tex, tex.image, url), undefined, tryLoad);
+  };
+  tryLoad();
 }
 
 function loadCharacter() {
-  const loader = new THREE.TextureLoader();
-  const urls = [...(content.character.src || [])];
-  const tryLoad = () => {
-    const url = urls.shift();
-    if (!url) {
-      loadPlaceholderCharacter();
-      return;
-    }
-    loader.load(url, (tex) => {
-      setCharacterMap(tex, tex.image, url);
-    }, undefined, tryLoad);
-  };
-  tryLoad();
+  const cover = content.character.src || [];
+  const tear = content.character.tearSrc || [];
+  loadUrlChain(cover, setCoverMap, loadPlaceholderCharacter);
+  loadUrlChain(tear, setTearMap, () => console.warn('[character tear] missing'));
 }
 
 // ---------------------------------------------------------------------------
@@ -520,6 +557,7 @@ function syncParams() {
   crt.uniforms.uGrain.value = params.grain;
   crt.uniforms.uScanlines.value = params.scanlines;
   characterMat.uniforms.uKeyBlack.value = params.keyBlack ? 1 : 0;
+  tearMat.uniforms.uKeyBlack.value = params.keyBlack ? 1 : 0;
   for (const p of panels) p.mat.uniforms.uBrightness.value = params.panelBrightness * (0.85 + (p.mat.uniforms.uSeed.value % 0.3));
 }
 
@@ -703,6 +741,7 @@ function tick() {
   const R = player.playing ? params.reactivity : 0;
   for (const k in env) env[k] *= Math.exp(-DECAY[k] * dt);
   const lv = player.update();
+  player.syncClock();
   easeLook(dt);
 
   panelGroup.rotation.y += params.rotationSpeed * dt * (1 + R * (lv.low * 1.4 + env.kick * 1.2));
@@ -713,7 +752,14 @@ function tick() {
   halo.scale.setScalar(1 + R * 0.12 * env.lead);
   halo.rotation.z += dt * R * env.lead * (2 + (leadPitch % 12) * 0.2);
   haloMat.color.setScalar(2.2 + R * 0.9 * env.lead);
-  characterMat.uniforms.uBrightness.value = 0.82 + R * (0.1 * env.bass + 0.08 * env.kick);
+  const bright = 0.82 + R * (0.1 * env.bass + 0.08 * env.kick);
+  characterMat.uniforms.uBrightness.value = bright;
+  tearMat.uniforms.uBrightness.value = bright;
+  const tearTarget = TEAR_SCENES.has(storyScene().id) ? 1 : 0;
+  characterReveal += (tearTarget - characterReveal) * (1 - Math.exp(-dt / 0.32));
+  characterMat.uniforms.uReveal.value = characterReveal;
+  characterMat.uniforms.uGlitch.value = now < glitchUntil ? 1 : 0;
+  characterMat.uniforms.uTime.value = now;
   gaze.group.position.z = -R * 0.22 * env.kick;   // kick punch-in, outside the gaze smoothing
   gaze.update(dt);
 

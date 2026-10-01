@@ -1,15 +1,19 @@
-// ORCA + Pilot running in the page. The Tone transport ticks one ORCA frame per 16th note; every `;`
-// message goes to the Pilot port at that frame's exact audio time. Visual events (notes, frames) are
-// re-timed with Tone.Draw so they land when the sound is heard, not when it is scheduled.
+// Soundtrack clock. ORCA 16ths are derived from audio.currentTime at 130 BPM so the grid
+// and the Mili track share one beat. Pilot synth is silent.
 
-import * as Tone from 'tone';
 import { Orca, library } from './orca-core.js';
-import { Pilot } from './pilot.js';
 import { GRID, SETLIST, Performer } from './song.js';
 import { scene } from './story.js';
 
-// Pilot channel -> role in the arrangement (see songs/kit.js)
-export const ROLE = { 0: 'bass', 1: 'stab', 2: 'stab', 3: 'stab', 4: 'lead', 6: 'lead', 12: 'kick', 13: 'snare', 14: 'hat', 15: 'snare' };
+const TRACK = 'assets/audio/world-execute-me.mp3';
+
+export const SOUNDTRACK = {
+  title: 'world.execute(me);',
+  artist: 'Mili',
+  file: 'world-execute-me.mp3',
+  bpm: 130,
+  offset: 0.46,
+};
 
 const THEME = { background: '#000000', f_high: '#e8eef2', f_med: '#8aa8b0', f_low: '#3a4a52', f_inv: '#071018', b_high: '#cfe8ec', b_med: '#7ad4de', b_low: '#1c2a36', b_inv: '#e6c07a' };
 const TILE = { w: 14, h: 22 };
@@ -35,6 +39,10 @@ export class OrcaPlayer {
     this.canvas.width = GRID.w * TILE.w;
     this.canvas.height = (GRID.h + 2) * TILE.h;
     this.ctx = this.canvas.getContext('2d');
+    this.track = new Audio(TRACK);
+    this.track.loop = true;
+    this.track.preload = 'auto';
+    this.lastF = -1;
     this.draw();
   }
 
@@ -45,36 +53,23 @@ export class OrcaPlayer {
   async start() {
     if (!this.started) {
       this.started = true;
-      // Native context, not Tone's standardized-audio-context wrapper: its connect() walks every path
-      // for cycles, and Pilot's 16 serial dry/wet effects double the paths per stage, so each note
-      // start took seconds. Pilot itself ran on old Tone with native nodes.
       const ctx = new AudioContext({ latencyHint: 'interactive' });
-      // Firefox has no AudioParams on AudioListener, and Tone's Listener wraps each one in a Param
-      // ("param must be an AudioParam"). Back the missing ones with throwaway gain params, 3D is unused.
-      for (const k of ['positionX', 'positionY', 'positionZ', 'forwardX', 'forwardY', 'forwardZ', 'upX', 'upY', 'upZ']) {
-        if (!ctx.listener[k]) Object.defineProperty(ctx.listener, k, { value: ctx.createGain().gain });
-      }
-      Tone.setContext(ctx);
-      await Tone.start();
-      this.pilot = new Pilot();
-      this.pilot.onNote = (e) => Tone.getDraw().schedule(() => this.emit('note', { ...e, role: ROLE[e.channel] }), e.time);
-
-      this.analyser = Tone.getContext().createAnalyser();
+      this.audioCtx = ctx;
+      this.srcNode = ctx.createMediaElementSource(this.track);
+      this.analyser = ctx.createAnalyser();
       this.analyser.fftSize = 512;
-      this.analyser.smoothingTimeConstant = 0.6;
-      this.pilot.output.connect(this.analyser);
+      this.analyser.smoothingTimeConstant = 0.55;
+      this.srcNode.connect(this.analyser);
+      this.analyser.connect(ctx.destination);
       this.bins = new Uint8Array(this.analyser.frequencyBinCount);
-
-      const transport = Tone.getTransport();
-      transport.bpm.value = this.song.bpm;
-      transport.scheduleRepeat((time) => this.frame(time), '16n');
     }
-    Tone.getTransport().start();
+    if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
+    await this.track.play();
     this.playing = true;
   }
 
   stop() {
-    Tone.getTransport().pause();
+    this.track.pause();
     this.playing = false;
   }
 
@@ -86,41 +81,57 @@ export class OrcaPlayer {
     this.song = SETLIST[this.index];
     this.orca.reset(GRID.w, GRID.h);
     this.performer = new Performer(this.orca, this.song);
-    if (this.started) {
-      Tone.getTransport().bpm.value = this.song.bpm;
-      this.pilot.reset();                            // oscillators / effects back to Pilot defaults
-    }
-    if (this.ctx) {                                  // skipped while paused: show the empty grid now
-      this.view = { s: this.orca.s, locks: [], ports: [], f: 0, cursor: { x: 0, y: 0 }, msgs: 0 };
-      this.draw();
-    }
+    this.view = { s: this.orca.s, locks: [], ports: [], f: 0, cursor: { x: 0, y: 0 }, msgs: 0 };
+    if (this.ctx) this.draw();
     this.emit('song', this.song);
   }
 
   next() { this.load(this.index + 1); }
 
-  frame(time) {
-    const orca = this.orca;
-    if (orca.f >= this.performer.length) this.next();   // end of the song: wipe the grid, next one
-    const f = orca.f;
-    this.performer.step(f);
-    this.outbox = [];
-    orca.run();
-    for (const msg of this.outbox) this.pilot.run(msg, time);
+  frameIndex(time) {
+    const { bpm, offset } = SOUNDTRACK;
+    return Math.floor((time - offset) * bpm / 60 * 4);
+  }
 
-    const view = { s: orca.s, locks: orca.locks.slice(), ports: findPorts(orca), f, cursor: { ...this.performer.cursor }, msgs: this.outbox.length };
-    Tone.getDraw().schedule(() => {
-      this.view = view;
+  syncClock() {
+    if (!this.playing) return;
+    let f = this.frameIndex(this.track.currentTime);
+    if (f < 0) return;
+    if (f < this.lastF) {
+      this.lastF = -1;
+      this.load(this.index);
+      f = this.frameIndex(this.track.currentTime);
+      if (f < 0) return;
+    }
+    while (this.lastF < f) {
+      this.lastF += 1;
+      if (this.orca.f >= this.performer.length) this.next();
+      this.performer.step(this.orca.f);
+      this.outbox = [];
+      this.orca.run();
+      if (this.lastF !== f) continue;
+      const step = this.lastF % 16;
+      this.view = {
+        s: this.orca.s,
+        locks: this.orca.locks.slice(),
+        ports: findPorts(this.orca),
+        f: this.lastF,
+        cursor: { ...this.performer.cursor },
+        msgs: this.outbox.length,
+      };
       this.draw();
-      this.emit('frame', { f, bar: Math.floor(f / 16), step: f % 16 });
-    }, time);
+      this.emit('frame', { f: this.lastF, bar: Math.floor(this.lastF / 16), step });
+      if (step === 0) this.emit('note', { role: 'kick', velocity: Math.max(0.45, this.levels.low), midi: 36 });
+      if (step === 8) this.emit('note', { role: 'snare', velocity: Math.max(0.35, this.levels.high), midi: 38 });
+      if (step % 2 === 0) this.emit('note', { role: 'hat', velocity: 0.25 + this.levels.high * 0.4, midi: 42 });
+    }
   }
 
   // per-frame audio levels, 0..1, from the Pilot master output
   update() {
     if (!this.analyser) return this.levels;
     this.analyser.getByteFrequencyData(this.bins);
-    const hz = Tone.getContext().sampleRate / this.analyser.fftSize;
+    const hz = (this.analyser.context?.sampleRate || 44100) / this.analyser.fftSize;
     const band = (lo, hi) => {
       let s = 0, n = 0;
       for (let i = Math.floor(lo / hz); i <= Math.min(Math.ceil(hi / hz), this.bins.length - 1); i++) { s += this.bins[i]; n++; }
@@ -158,7 +169,7 @@ export class OrcaPlayer {
     }
     const y = GRID.h;
     this.text(`${f}f${this.playing ? '' : '~'}`, 0, y, 2);
-    this.text(`${this.song.bpm}`, MARKER, y, 2);
+    this.text(`${SOUNDTRACK.bpm}`, MARKER, y, 2);
     this.text('|'.repeat(this.view.msgs).padEnd(MARKER - 1, '.'), MARKER * 2, y, 2);
     const tag = scene().title.toLowerCase().padEnd(12, '.').slice(0, 12);
     this.text(tag, MARKER * 3, y, 5);

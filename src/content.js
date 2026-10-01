@@ -8,8 +8,11 @@ export const defaults = {
   },
   character: {
     src: ['assets/character.png', 'assets/character.jpg', 'assets/character.webp'],
+    tearSrc: ['assets/character-tear.png'],
     headPx: [512, 380],
     sizePx: [1024, 1024],
+    tearHeadPx: [626, 400],
+    tearSizePx: [1230, 1278],
     worldWidth: 3.3,
   },
   panels: [],
@@ -31,6 +34,9 @@ export async function loadContent() {
     };
     if (typeof content.character.src === 'string') {
       content.character.src = [content.character.src];
+    }
+    if (typeof content.character.tearSrc === 'string') {
+      content.character.tearSrc = [content.character.tearSrc];
     }
   } catch (err) {
     console.warn('[content]', err);

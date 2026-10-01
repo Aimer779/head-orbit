@@ -6,8 +6,11 @@
   },
   "character": {
     "src": ["assets/character.png", "assets/character.jpg", "assets/character.webp"],
+    "tearSrc": ["assets/character-tear.png"],
     "headPx": [629, 430],
     "sizePx": [1254, 1254],
+    "tearHeadPx": [626, 400],
+    "tearSizePx": [1230, 1278],
     "worldWidth": 3.3
   },
   "panels": []
