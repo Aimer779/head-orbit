@@ -1,0 +1,13 @@
+{
+  "name": "head-orbit",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs"
+  },
+  "dependencies": {
+    "lil-gui": "0.20.0",
+    "three": "0.170.0"
+  }
+}

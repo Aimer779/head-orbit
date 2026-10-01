@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>eat rice</title>
+  <meta name="description" content="Unofficial DeepSeek-chan window ring. Visual remix of internet.bizar.ro. Not an official mascot." />
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    canvas { display: block; touch-action: none; }
+    #deck { position: fixed; left: 16px; bottom: 16px; width: min(46vw, 560px);
+      mix-blend-mode: screen; color: #cfe8ec; cursor: pointer;
+      font: 12px/1.45 "Microsoft YaHei", "Noto Sans SC", "PingFang SC", sans-serif;
+      user-select: none; }
+    #deck.hidden { display: none; }
+    #deck header, #deck footer { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+    #deck header { padding: 0 1px 6px; color: #7ad4de; letter-spacing: 0.04em; }
+    #deck header strong { font-weight: 600; }
+    #deck header span { color: #8aa8b0; }
+    #orca { width: 100%; height: auto; display: block; cursor: pointer; }
+    #deck footer { padding-top: 6px; color: #8aa8b0; font-size: 11px; }
+    #deck-bowl { color: #e6c07a; letter-spacing: 0.12em; }
+    #deck-hint { opacity: 0.55; }
+    #credits { position: fixed; right: 16px; bottom: 16px; margin: 0; text-align: right;
+      font: 11px/1.6 "Input Mono", "Menlo", "Consolas", monospace; color: #fff;
+      mix-blend-mode: screen; opacity: 0.6; pointer-events: none; user-select: none; }
+    #credits dt { display: inline; opacity: 0.55; }
+    #credits dd { display: inline; margin: 0 0 0 0.6em; }
+    #credits dd::after { content: ""; display: block; }
+    #credits a { color: inherit; text-decoration: none; pointer-events: auto; }
+    #credits a:hover { text-decoration: underline; }
+    @media (max-width: 640px) {
+      #credits { font-size: 9px; }
+      #credits dt { display: block; }
+      #credits dd { margin: 0 0 0.4em; }
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/addons/": "./node_modules/three/examples/jsm/",
+        "lil-gui": "./node_modules/lil-gui/dist/lil-gui.esm.min.js",
+        "tone": "./vendor/tone.esm.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <aside id="deck">
+    <header>
+      <strong id="deck-title">PERSONA_LOAD</strong>
+      <span id="deck-line">点一下开饭</span>
+    </header>
+    <div id="deck-grid"></div>
+    <footer>
+      <span id="deck-bowl">・・・・・・・・</span>
+      <span id="deck-hint">点网格或画面开饭</span>
+    </footer>
+  </aside>
+  <dl id="credits">
+    <dt>after</dt><dd><a href="https://internet.bizar.ro/" target="_blank" rel="noopener">luis bizarro</a></dd>
+    <dt>character</dt><dd>unofficial · community</dd>
+    <dt>art</dt><dd id="page-title">上善无形 / ZipZipPipe</dd>
+    <dt>pixel</dt><dd><a href="https://github.com/lhh010/dsh-ui-whale" target="_blank" rel="noopener">lhh010</a></dd>
+    <dt>dive</dt><dd><a href="https://github.com/LeemanCheung/dsh-whale-animation" target="_blank" rel="noopener">LeemanCheung</a></dd>
+    <dt id="song-title">eat rice</dt><dd><a id="song-artist" href="https://internet.bizar.ro/" target="_blank" rel="noopener">little whale</a></dd>
+  </dl>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

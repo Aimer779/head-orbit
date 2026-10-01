@@ -1,0 +1,14 @@
+{
+  "title": "eat rice",
+  "credits": {
+    "illustration": "上善无形 / ZipZipPipe",
+    "mashup": "you"
+  },
+  "character": {
+    "src": ["assets/character.png", "assets/character.jpg", "assets/character.webp"],
+    "headPx": [629, 430],
+    "sizePx": [1254, 1254],
+    "worldWidth": 3.3
+  },
+  "panels": []
+}
