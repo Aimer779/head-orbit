@@ -14,11 +14,10 @@
       font: 15px/1.4 "Microsoft YaHei", "Yu Gothic", "Meiryo", "Noto Sans SC", "Noto Sans JP", sans-serif;
       user-select: none; }
     #deck.hidden { display: none; }
-    #deck header, #deck footer { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
+    #deck footer { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
     #deck header { padding: 0 1px 10px; color: #7ad4de; letter-spacing: 0.04em;
       font-size: clamp(16px, 1.5vw, 22px); }
     #deck header strong { font-weight: 600; }
-    #deck header span { color: #8aa8b0; font-size: 0.85em; }
     #orca { display: none; }
     #deck-lyrics { min-height: 14em; padding: 4px 1px 8px; }
     #deck-lyrics .lyric { margin: 0; }
@@ -36,7 +35,6 @@
     #deck-lyrics .now.keyword .en { color: #e6c07a; letter-spacing: 0.1em; }
     #deck footer { padding-top: 10px; color: #8aa8b0; font-size: clamp(12px, 1.1vw, 15px); }
     #deck-bowl { color: #e6c07a; letter-spacing: 0.12em; }
-    #deck-hint { opacity: 0.55; }
     #credits { position: fixed; right: 16px; bottom: 16px; margin: 0; text-align: right;
       max-width: min(36vw, 22rem);
       font: 11px/1.6 "Input Mono", "Menlo", "Consolas", monospace; color: #fff;
@@ -78,7 +76,6 @@
   <aside id="deck">
     <header>
       <strong id="deck-title">world.execute(me);</strong>
-      <span id="deck-line">点一下开饭</span>
     </header>
     <div id="deck-lyrics">
       <p id="lyric-prev" class="lyric dim"><span class="zh"></span><span class="ja"></span><span class="en"></span></p>
@@ -88,7 +85,6 @@
     <div id="deck-grid" hidden></div>
     <footer>
       <span id="deck-bowl">・・・・・・・・</span>
-      <span id="deck-hint">点网格或画面开饭</span>
     </footer>
   </aside>
   <dl id="credits">

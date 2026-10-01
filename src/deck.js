@@ -16,24 +16,14 @@ export function mountDeck(player) {
 }
 
 export function refreshDeck(player) {
-  const line = document.getElementById('deck-line');
   const bowl = document.getElementById('deck-bowl');
-  const hint = document.getElementById('deck-hint');
-  if (!line) return;
-
-  if (!player.started) line.textContent = '点一下开饭';
-  else if (!player.playing) line.textContent = '测完告诉我就行';
-  else line.textContent = '';
+  if (!bowl) return;
 
   const dur = player.track?.duration;
   const t = player.track?.currentTime || 0;
   const fill = player.playing && dur > 0 ? t / dur : (player.started ? 0.12 : 0);
   const n = Math.round(Math.min(1, Math.max(0, fill)) * GRAINS);
   bowl.textContent = '飯'.repeat(n) + '・'.repeat(GRAINS - n);
-
-  hint.textContent = player.started
-    ? 'P 停   O 收起'
-    : '点画面或台词开饭';
 
   tickLyrics(player);
 }
