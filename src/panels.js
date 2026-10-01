@@ -14,6 +14,18 @@ const RED = '#d4544a';
 const GOLD = '#e6c07a';
 
 const pool = [];
+const brand = { wordmark: null };
+
+const EMOJI = {
+  always: ['🐋', '🐳', '🍚', '💙', '🙈'],
+  boot: ['🐋', '✨', '🪪'],
+  think: ['💭', '🧠', '🌀', '📝'],
+  cheap: ['💸', '🏷️', '😤'],
+  rice: ['🍚', '🥢', '🥣', '😋'],
+  slack: ['😴', '🍽️', '🏃'],
+  glitch: ['💢', '⚠️', '🙈', '😳'],
+  sleep: ['💤', '🌙', '😪', '🤍'],
+};
 const cot = document.createElement('canvas');
 cot.width = 520;
 cot.height = 320;
@@ -235,6 +247,34 @@ function catTask() {
   return c;
 }
 
+function drawContained(g, img, x, y, boxW, boxH) {
+  if (!img) return;
+  const s = Math.min(boxW / img.width, boxH / img.height);
+  const dw = img.width * s;
+  const dh = img.height * s;
+  g.drawImage(img, x + (boxW - dw) / 2, y + (boxH - dh) / 2, dw, dh);
+}
+
+function logoCard() {
+  const [c, g] = make(520, 200);
+  g.fillStyle = '#0a1020';
+  g.fillRect(0, 0, 520, 200);
+  g.strokeStyle = '#1c2a4a';
+  g.strokeRect(8.5, 8.5, 503, 183);
+  drawContained(g, brand.wordmark, 24, 28, 472, 144);
+  return c;
+}
+
+function emojiSticker() {
+  const set = [...EMOJI.always, ...(EMOJI[scene().id] || [])];
+  const [c, g] = make(256, 256);
+  g.font = '200px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(pick(set), 128, 140);
+  return c;
+}
+
 function voteCard() {
   const [c, g] = make(420, 250);
   chrome(g, 420, 250, 'POLL', CYAN);
@@ -254,16 +294,18 @@ function voteCard() {
 }
 
 const BY_SCENE = {
-  boot: [[personaLoad, 5], [fatFish, 1]],
-  think: [[cotWindow, 5], [personaLoad, 2]],
-  cheap: [[priceTag, 5], [fatFish, 2]],
-  rice: [[riceBowl, 4], [fatFish, 3]],
-  slack: [[experimentLog, 5], [riceBowl, 2]],
-  glitch: [[errorRage, 4], [priceTag, 1], [voteCard, 1]],
-  sleep: [[deepSleep, 5], [riceBowl, 2]],
+  boot: [[personaLoad, 4], [fatFish, 1]],
+  think: [[cotWindow, 4], [emojiSticker, 3], [personaLoad, 2]],
+  cheap: [[priceTag, 5], [fatFish, 3], [emojiSticker, 2], [logoCard, 1]],
+  rice: [[riceBowl, 3], [emojiSticker, 4], [fatFish, 2]],
+  slack: [[experimentLog, 4], [emojiSticker, 3], [riceBowl, 2]],
+  glitch: [[errorRage, 3], [emojiSticker, 3], [priceTag, 1], [voteCard, 1]],
+  sleep: [[deepSleep, 3], [emojiSticker, 3], [riceBowl, 2]],
 };
 
-const ALWAYS = [[catTask, 1], [voteCard, 1]];
+const ALWAYS = [[emojiSticker, 5], [catTask, 1], [voteCard, 1]];
+
+const TRANSPARENT = new Set([emojiSticker]);
 
 function pickWeighted(list) {
   const total = list.reduce((s, [, w]) => s + w, 0);
@@ -310,6 +352,7 @@ export function liveCotSource() {
 
 export async function loadPanelImages() {
   pool.length = 0;
+  try { brand.wordmark = await loadImage('assets/brand/logo.png'); } catch { brand.wordmark = null; }
   for (const item of content.panels) {
     if (!item?.src) continue;
     try {
@@ -325,7 +368,7 @@ export async function loadPanelImages() {
     }
   }
   tickStoryVisuals();
-  console.log('[panels]', pool.length ? `${pool.length} images + story` : 'story windows');
+  console.log('[panels]', pool.length ? `${pool.length} images + story` : 'story + logo + emoji');
 }
 
 export function randomPanel() {
@@ -340,6 +383,7 @@ export function randomPanel() {
   }
   const id = scene().id;
   const list = [...(BY_SCENE[id] || BY_SCENE.think), ...ALWAYS];
-  const fn = pickWeighted(list);
-  return { canvas: fn(), transparent: false, kind: fn.name };
+  let fn = pickWeighted(list);
+  if (fn === logoCard && !brand.wordmark) fn = emojiSticker;
+  return { canvas: fn(), transparent: TRANSPARENT.has(fn), kind: fn.name };
 }

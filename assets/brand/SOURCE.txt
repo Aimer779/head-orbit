@@ -1,0 +1,7 @@
+logo.png / logo.svg
+  https://github.com/deepseek-ai/DeepSeek-LLM/blob/main/images/logo.svg
+  DeepSeek, MIT-licensed code repo artwork. Trademark stays with DeepSeek.
+  Unofficial local remix only.
+
+whale.png
+  Cropped left mark from logo.png (the leaping whale).
