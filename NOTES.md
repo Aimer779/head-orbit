@@ -28,6 +28,6 @@ http://127.0.0.1:5184/ 。点画面开始。`?gui` 开参数。
 
 左下角是开机台。格子第一行不再写 Daft Punk，改成 `#.eat.rice.little.whale.#` 这类场面注释；两小节切一场时会改写成 persona.load / cot / not.cheap / deepsleep。鼓点仍是同一套 ORCA 引擎。外壳口令：点一下开饭 / 测完告诉我就行。P 停，N 下一碗，O 收起。
 
-窗口环以场面窗和 emoji 为主。官方 wordmark 只在「看见 logo / 便宜货」那一拍低权重出现一次，不当墙纸。来源 `assets/brand/`（deepseek-ai/DeepSeek-LLM）。商标仍归 DeepSeek。
+窗口环以 404、蓝屏、Win98 报错、彩条、终端这类计算机画面为主。emoji 全场只钉两枚，换贴图不再抽新的。官方 wordmark 只在便宜货那一拍低权重出现。
 
 换图后硬刷新。场面文案在 `src/story.js`。像素帧在 `vendor/dsh-ui-whale/`，WebP 在 `vendor/dsh-whale-animation/`。

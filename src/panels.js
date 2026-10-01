@@ -71,6 +71,62 @@ function wrap(g, text, maxW) {
   return lines;
 }
 
+const UI = '"MS Sans Serif", Tahoma, Verdana, sans-serif';
+
+function bevel(g, x, y, w, h, inset = false) {
+  g.fillStyle = '#c0c0c0';
+  g.fillRect(x, y, w, h);
+  g.fillStyle = inset ? '#808080' : '#ffffff';
+  g.fillRect(x, y, w, 2); g.fillRect(x, y, 2, h);
+  g.fillStyle = inset ? '#ffffff' : '#404040';
+  g.fillRect(x, y + h - 2, w, 2); g.fillRect(x + w - 2, y, 2, h);
+}
+
+function winFrame(g, w, h, title, bodyColor = '#ffffff') {
+  bevel(g, 0, 0, w, h);
+  const grad = g.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0, '#000080');
+  grad.addColorStop(1, '#1084d0');
+  g.fillStyle = grad;
+  g.fillRect(4, 4, w - 8, 30);
+  g.fillStyle = '#fff';
+  g.font = `bold 18px ${UI}`;
+  g.textBaseline = 'middle';
+  g.fillText(title, 12, 19);
+  for (let i = 0; i < 3; i++) {
+    const bx = w - 30 - i * 26;
+    bevel(g, bx, 8, 22, 20);
+    g.fillStyle = '#000';
+    g.font = `bold 14px ${UI}`;
+    g.fillText(['×', '□', '_'][i], bx + 6, 18);
+  }
+  g.fillStyle = bodyColor;
+  g.fillRect(6, 38, w - 12, h - 44);
+}
+
+function button(g, x, y, w, h, label) {
+  bevel(g, x, y, w, h);
+  g.fillStyle = '#000';
+  g.font = `16px ${UI}`;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(label, x + w / 2, y + h / 2);
+  g.textAlign = 'left';
+}
+
+function errorIcon(g, cx, cy, r) {
+  g.beginPath();
+  g.arc(cx, cy, r, 0, Math.PI * 2);
+  g.fillStyle = '#e01010';
+  g.fill();
+  g.strokeStyle = '#fff';
+  g.lineWidth = r * 0.25;
+  g.beginPath();
+  g.moveTo(cx - r * 0.45, cy - r * 0.45); g.lineTo(cx + r * 0.45, cy + r * 0.45);
+  g.moveTo(cx + r * 0.45, cy - r * 0.45); g.lineTo(cx - r * 0.45, cy + r * 0.45);
+  g.stroke();
+}
+
 function chrome(g, w, h, title, accent = CYAN) {
   g.fillStyle = '#07080a';
   g.fillRect(0, 0, w, h);
@@ -275,6 +331,192 @@ function emojiSticker() {
   return c;
 }
 
+function notFound() {
+  const [c, g] = make(520, 280);
+  winFrame(g, 520, 280, pick(['404 Not Found', 'Internet Explorer', 'Netscape']));
+  g.fillStyle = '#000';
+  g.font = `bold 22px ${UI}`;
+  g.textBaseline = 'top';
+  g.fillText('404', 24, 52);
+  g.font = `16px ${UI}`;
+  pick([
+    ['The requested URL was not found', 'on this server.', 'HTTP/1.1  404  Not Found'],
+    ['This page cannot be displayed.', 'The connection was reset.', 'Please try again later.'],
+    ['File not found.', 'index.html', 'Error 404'],
+  ]).forEach((l, i) => g.fillText(l, 24, 88 + i * 28));
+  button(g, 190, 210, 140, 36, 'Back');
+  return c;
+}
+
+function errorDialog() {
+  const [c, g] = make(520, 260);
+  winFrame(g, 520, 260, pick(['System Error', 'Fatal Exception', 'Warning']), '#c0c0c0');
+  errorIcon(g, 70, 110, 32);
+  g.fillStyle = '#000';
+  g.font = `18px ${UI}`;
+  g.textBaseline = 'middle';
+  pick([
+    ['This page cannot be displayed.', 'Connection was reset.'],
+    ['An unknown error has occurred.', 'Please try again later.'],
+    ['Stack overflow at 0x0045FF.', 'Program will close.'],
+    ['Access denied.', 'You are not anonymous.'],
+  ]).forEach((l, i) => g.fillText(l, 125, 95 + i * 28));
+  button(g, 200, 195, 120, 36, 'OK');
+  return c;
+}
+
+function bsodClassic() {
+  const [c, g] = make(560, 300);
+  g.fillStyle = '#0000aa';
+  g.fillRect(0, 0, 560, 300);
+  g.fillStyle = '#aaaaff';
+  g.fillRect(196, 18, 168, 28);
+  g.fillStyle = '#0000aa';
+  g.font = `bold 16px ${MONO}`;
+  g.textAlign = 'center';
+  g.fillText('Windows', 280, 38);
+  g.textAlign = 'left';
+  g.fillStyle = '#fff';
+  g.font = `15px ${MONO}`;
+  [
+    'A fatal exception 0E has occurred at',
+    '0028:C0011E36 in VXD VMM(01) +',
+    '00010912.  The current application',
+    'will be terminated.',
+    '',
+    '* Press any key to continue *',
+  ].forEach((l, i) => g.fillText(l, 28, 70 + i * 28));
+  return c;
+}
+
+function bsodSad() {
+  const [c, g] = make(520, 260);
+  g.fillStyle = '#0078d7';
+  g.fillRect(0, 0, 520, 260);
+  g.fillStyle = '#fff';
+  g.font = 'bold 64px Arial';
+  g.textBaseline = 'top';
+  g.fillText(':(', 24, 16);
+  g.font = `16px ${UI}`;
+  ['Your PC ran into a problem and needs', 'to restart. We\'re just collecting some', 'error info, and then we\'ll restart.', '', `${10 + Math.floor(Math.random() * 80)}% complete`].forEach((l, i) => g.fillText(l, 24, 100 + i * 24));
+  return c;
+}
+
+function colorBars() {
+  const [c, g] = make(480, 320);
+  const top = ['#c0c0c0', '#c0c000', '#00c0c0', '#00c000', '#c000c0', '#c00000', '#0000c0'];
+  const bw = 480 / 7;
+  top.forEach((col, i) => { g.fillStyle = col; g.fillRect(i * bw, 0, bw + 1, 220); });
+  const mid = ['#0000c0', '#131313', '#c000c0', '#131313', '#00c0c0', '#131313', '#c0c0c0'];
+  mid.forEach((col, i) => { g.fillStyle = col; g.fillRect(i * bw, 220, bw + 1, 30); });
+  const bot = ['#00214c', '#ffffff', '#32006a', '#131313', '#090909', '#131313', '#1d1d1d'];
+  bot.forEach((col, i) => { g.fillStyle = col; g.fillRect(i * bw, 250, bw + 1, 70); });
+  return c;
+}
+
+function terminal() {
+  const [c, g] = make(480, 300);
+  g.fillStyle = '#000';
+  g.fillRect(0, 0, 480, 300);
+  g.strokeStyle = '#aaa';
+  g.lineWidth = 4;
+  g.strokeRect(2, 2, 476, 296);
+  g.fillStyle = '#c8ffc8';
+  g.font = `16px ${MONO}`;
+  g.textBaseline = 'top';
+  const cmds = [
+    '$ whoami', 'whale',
+    '$ ping 127.0.0.1', 'Request timed out.',
+    '$ cat /dev/urandom', '▒▓░█▒▓░▒█▓',
+    '$ sudo rm -rf feelings', 'Permission denied',
+    '$ _',
+  ];
+  cmds.forEach((l, i) => g.fillText(l, 14, 14 + i * 26));
+  return c;
+}
+
+function caution() {
+  const [c, g] = make(620, 180);
+  g.fillStyle = '#111';
+  g.fillRect(0, 0, 620, 180);
+  const tape = (y) => {
+    g.fillStyle = '#ffd400';
+    g.fillRect(0, y, 620, 36);
+    g.fillStyle = '#111';
+    for (let x = -30; x < 640; x += 40) {
+      g.beginPath();
+      g.moveTo(x, y + 36); g.lineTo(x + 20, y); g.lineTo(x + 34, y); g.lineTo(x + 14, y + 36);
+      g.fill();
+    }
+    g.fillStyle = '#111';
+    g.fillRect(170, y + 6, 280, 24);
+    g.fillStyle = '#ffd400';
+    g.font = 'bold 16px Arial';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('CAUTION · DO NOT CROSS', 310, y + 18);
+    g.textAlign = 'left';
+  };
+  tape(8);
+  tape(136);
+  g.fillStyle = '#eee';
+  g.font = `18px ${UI}`;
+  g.fillText(pick(['UNSTABLE BUILD', 'KERNEL HALTED', 'DO NOT FEED']), 24, 96);
+  return c;
+}
+
+function inputBox() {
+  const [c, g] = make(300, 80);
+  bevel(g, 0, 0, 300, 80);
+  bevel(g, 10, 14, 280, 52, true);
+  g.fillStyle = '#fff';
+  g.fillRect(13, 17, 274, 46);
+  g.fillStyle = '#000';
+  g.font = `26px ${UI}`;
+  g.textBaseline = 'middle';
+  const txt = pick(['404', 'help', 'whoami', 'log off', 'hello?']);
+  g.fillText(txt, 22, 41);
+  g.fillRect(26 + g.measureText(txt).width, 26, 2, 30);
+  return c;
+}
+
+function questionTile() {
+  const [c, g] = make(260, 260);
+  g.fillStyle = '#e8e8e8';
+  g.fillRect(0, 0, 260, 260);
+  g.fillStyle = '#222';
+  g.beginPath(); g.arc(130, 150, 90, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#fff';
+  g.font = 'bold 130px Arial';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText('?', 130, 156);
+  g.textAlign = 'left';
+  return c;
+}
+
+function hourglass() {
+  const [c, g] = make(240, 240);
+  g.fillStyle = '#c0c0c0';
+  g.fillRect(0, 0, 240, 240);
+  winFrame(g, 240, 240, 'Please wait', '#c0c0c0');
+  g.fillStyle = '#000';
+  g.font = `16px ${UI}`;
+  g.textAlign = 'center';
+  g.fillText('Please wait...', 120, 90);
+  g.strokeStyle = '#404040';
+  g.lineWidth = 4;
+  g.beginPath();
+  g.moveTo(90, 120); g.lineTo(150, 120); g.lineTo(120, 170); g.closePath();
+  g.stroke();
+  g.beginPath();
+  g.moveTo(90, 210); g.lineTo(150, 210); g.lineTo(120, 170); g.closePath();
+  g.fillStyle = '#d4a017';
+  g.fill();
+  g.textAlign = 'left';
+  return c;
+}
+
 function voteCard() {
   const [c, g] = make(420, 250);
   chrome(g, 420, 250, 'POLL', CYAN);
@@ -294,16 +536,21 @@ function voteCard() {
 }
 
 const BY_SCENE = {
-  boot: [[personaLoad, 4], [fatFish, 1]],
-  think: [[cotWindow, 4], [emojiSticker, 3], [personaLoad, 2]],
-  cheap: [[priceTag, 5], [fatFish, 3], [emojiSticker, 2], [logoCard, 1]],
-  rice: [[riceBowl, 3], [emojiSticker, 4], [fatFish, 2]],
-  slack: [[experimentLog, 4], [emojiSticker, 3], [riceBowl, 2]],
-  glitch: [[errorRage, 3], [emojiSticker, 3], [priceTag, 1], [voteCard, 1]],
-  sleep: [[deepSleep, 3], [emojiSticker, 3], [riceBowl, 2]],
+  boot: [[personaLoad, 4], [hourglass, 2], [fatFish, 1]],
+  think: [[cotWindow, 4], [terminal, 3], [personaLoad, 2]],
+  cheap: [[priceTag, 4], [errorDialog, 2], [fatFish, 2], [logoCard, 1]],
+  rice: [[riceBowl, 3], [fatFish, 2], [colorBars, 2]],
+  slack: [[experimentLog, 4], [hourglass, 2], [riceBowl, 2]],
+  glitch: [[errorRage, 3], [bsodClassic, 3], [notFound, 2], [voteCard, 1]],
+  sleep: [[deepSleep, 3], [bsodSad, 2], [riceBowl, 2]],
 };
 
-const ALWAYS = [[emojiSticker, 5], [catTask, 1], [voteCard, 1]];
+const ALWAYS = [
+  [notFound, 4], [errorDialog, 4], [bsodClassic, 3], [bsodSad, 2],
+  [colorBars, 3], [terminal, 3], [caution, 2], [inputBox, 2],
+  [questionTile, 2], [hourglass, 2],
+  [catTask, 1], [voteCard, 1],
+];
 
 const TRANSPARENT = new Set([emojiSticker]);
 
@@ -384,6 +631,10 @@ export function randomPanel() {
   const id = scene().id;
   const list = [...(BY_SCENE[id] || BY_SCENE.think), ...ALWAYS];
   let fn = pickWeighted(list);
-  if (fn === logoCard && !brand.wordmark) fn = emojiSticker;
+  if (fn === logoCard && !brand.wordmark) fn = errorDialog;
   return { canvas: fn(), transparent: TRANSPARENT.has(fn), kind: fn.name };
+}
+
+export function makeEmojiPanel() {
+  return { canvas: emojiSticker(), transparent: true, kind: 'emoji' };
 }

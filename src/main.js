@@ -7,7 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SavePass } from 'three/addons/postprocessing/SavePass.js';
 import GUI from 'lil-gui';
-import { randomPanel, loadPanelImages, liveCotSource, tickStoryVisuals } from './panels.js';
+import { randomPanel, loadPanelImages, liveCotSource, tickStoryVisuals, makeEmojiPanel } from './panels.js';
 import { advanceStory, scene as storyScene, paintGridBanner } from './story.js';
 import { loadPixelWhale, tickPixelWhale, livePixelSource, setPixelMoodFromScene } from './pixel-whale.js';
 import { loadDiveWhale, tickDiveWhale, liveDiveSource, requestDiveFromScene } from './dive-whale.js';
@@ -329,7 +329,7 @@ function createPanel({ y, thetaStart, radius, source }) {
 
   if (p.live) mesh.add(curvedOutline(radius + 0.02, height * 1.08, thetaStart - 0.015, thetaLength + 0.03));
 
-  return { mesh, mat, thetaLength, panelAspect, live: !!p.live, baseY: y, bobSpeed: Math.random() * 0.8 + 0.2, bobAmp: Math.random() * 0.02, glitchUntil: 0 };
+  return { mesh, mat, thetaLength, panelAspect, live: !!p.live, kind: p.kind || '', baseY: y, bobSpeed: Math.random() * 0.8 + 0.2, bobAmp: Math.random() * 0.02, glitchUntil: 0 };
 }
 
 // Panels are kept as bands (rings stacked around the head), loose floaters and live ORCA grids, so a
@@ -463,15 +463,28 @@ function syncLayout(snap = false) {
   }
 }
 
+const emojiStickers = [];
+function addEmojiSticker() {
+  const slot = takeRadius();
+  emojiStickers.push(addPanel({
+    y: THREE.MathUtils.randFloat(-0.35, 0.3),
+    thetaStart: Math.random() * Math.PI * 2,
+    radius: slot + 0.04,
+    source: makeEmojiPanel(),
+  }, slot));
+}
+
 function buildPanels() {
   [...panels].forEach(disposePanel);
-  bandRings.length = floaters.length = orcaGrids.length = cotGrids.length = pixelGrids.length = diveGrids.length = 0;
+  bandRings.length = floaters.length = orcaGrids.length = cotGrids.length = pixelGrids.length = diveGrids.length = emojiStickers.length = 0;
   freeRadii = [...RADII];
   syncLayout(true);
+  addEmojiSticker();
+  addEmojiSticker();
 }
 
 function swapTexture(panel) {
-  if (panel.live) return;
+  if (panel.live || panel.kind === 'emoji') return;
   const p = randomPanel();
   const old = panel.mat.uniforms.map.value;
   panel.mat.uniforms.map.value = makeTexture(p.canvas);
