@@ -20,13 +20,13 @@ import { mountDeck, refreshDeck, tickDeck } from './deck.js';
 import { loadLyrics } from './lyrics.js';
 
 // ---------------------------------------------------------------------------
-// params (tweak live via the GUI, open with ?gui and press H to hide it)
+// params (tweak live via the always-on panel; H hides it)
 
 const params = {
-  rotationSpeed: 0.75,
+  rotationSpeed: 0.28,
   wobble: 0.08,
-  bands: 6,
-  floaters: 12,
+  bands: 3,
+  floaters: 4,
   panelBrightness: 1.15,
   bloomStrength: 0.5,
   bloomRadius: 0.15,
@@ -44,7 +44,7 @@ const params = {
   pixelPanels: 1,       // lhh010 pixel whale
   divePanels: 1,        // Harness dive / classic webp
   orcaOverlay: true,    // lyrics overlay, bottom-left (O)
-  beatShuffle: true,    // re-roll the look on the beat (B)
+  beatShuffle: false,   // re-roll the look on the beat (B)
   shuffleEvery: 4,      // beats between re-rolls
   shuffleAmount: 0.6,   // 0 = stay on the values above, 1 = anywhere in SHUFFLE ranges
   shuffleGlide: 0.12,   // seconds to ease into each new look, 0 = hard cut
@@ -54,7 +54,7 @@ const params = {
 
 // what beat shuffle may touch, and inside which range (kept tighter than the GUI limits)
 const SHUFFLE = {
-  rotationSpeed: [0.2, 2.2],
+  rotationSpeed: [0.08, 0.7],
   wobble: [0, 0.3],
   panelBrightness: [0.8, 1.5],
   bloomStrength: [0.2, 1.0],
@@ -70,9 +70,29 @@ const SHUFFLE = {
 // panel counts: re-rolled with the look but applied as add/remove, so each beat moves at most
 // `step` away from the current count (keeps the per-beat canvas work small)
 const SHUFFLE_COUNTS = {
-  bands: { range: [3, 9], step: 2 },
-  floaters: { range: [4, 36], step: 12 },
+  bands: { range: [2, 5], step: 1 },
+  floaters: { range: [2, 10], step: 2 },
 };
+
+const RING_STORE = 'head-orbit-ring';
+const RING_KEYS = ['rotationSpeed', 'wobble', 'bands', 'floaters', 'beatShuffle', 'shuffleEvery', 'reactivity', 'orcaPanels', 'cotPanels', 'pixelPanels', 'divePanels'];
+
+function loadRingPrefs() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(RING_STORE) || '{}');
+    for (const k of RING_KEYS) {
+      if (saved[k] != null) params[k] = saved[k];
+    }
+  } catch { /* ignore broken prefs */ }
+}
+
+function saveRingPrefs() {
+  const data = {};
+  for (const k of RING_KEYS) data[k] = params[k];
+  try { localStorage.setItem(RING_STORE, JSON.stringify(data)); } catch { /* quota */ }
+}
+
+loadRingPrefs();
 
 // ---------------------------------------------------------------------------
 // music: ORCA patch -> Pilot synth (src/audio.js). Click / P to play, N skips to the next song,
@@ -567,22 +587,31 @@ function syncParams() {
 // ---------------------------------------------------------------------------
 // GUI
 
-// only shown with ?gui in the URL; still built either way since the rest of the code talks to it
-const showGui = new URLSearchParams(location.search).has('gui');
-const gui = new GUI({ title: 'controls (H)' });
-gui.close();
-gui.show(showGui);
+const hideGui = new URLSearchParams(location.search).has('nogui');
+const gui = new GUI({ title: '参数 (H)' });
+gui.show(!hideGui);
+const fRing = gui.addFolder('窗口环');
+fRing.add(params, 'rotationSpeed', 0, 1.5, 0.01).name('转速').onFinishChange(saveRingPrefs);
+fRing.add(params, 'wobble', 0, 0.4, 0.01).name('晃动').onFinishChange(saveRingPrefs);
+fRing.add(params, 'bands', 1, 8, 1).name('层数').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fRing.add(params, 'floaters', 0, 24, 1).name('散片').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fRing.add(params, 'orcaPanels', 0, 6, 1).name('ORCA 窗').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fRing.add(params, 'cotPanels', 0, 4, 1).name('思考窗').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fRing.add(params, 'pixelPanels', 0, 4, 1).name('像素鲸').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fRing.add(params, 'divePanels', 0, 4, 1).name('下潜鲸').onFinishChange(() => { syncLayout(); saveRingPrefs(); });
+fRing.add(params, 'beatShuffle').name('随拍乱切 (B)').listen().onChange(saveRingPrefs);
+fRing.add(params, 'shuffleEvery', [1, 2, 4, 8, 16]).name('乱切间隔').onFinishChange(saveRingPrefs);
+fRing.add({ 重铺面板: () => buildPanels() }, '重铺面板');
+fRing.open();
 const fMotion = gui.addFolder('motion');
-fMotion.add(params, 'rotationSpeed', 0, 3, 0.01);
-fMotion.add(params, 'wobble', 0, 0.4, 0.01);
-fMotion.add(params, 'bands', 1, 12, 1).onFinishChange(() => syncLayout());
-fMotion.add(params, 'floaters', 0, 60, 1).onFinishChange(() => syncLayout());
 fMotion.add(params, 'panelBrightness', 0.5, 3, 0.01).onChange(syncParams);
+fMotion.close();
 const fBloom = gui.addFolder('bloom');
 fBloom.add(params, 'bloomStrength', 0, 4, 0.01).onChange(syncParams);
 fBloom.add(params, 'bloomRadius', 0, 1.5, 0.01).onChange(syncParams);
 fBloom.add(params, 'bloomThreshold', 0, 1.5, 0.01).onChange(syncParams);
 fBloom.add(params, 'trails', 0, 0.98, 0.01).onChange(syncParams);
+fBloom.close();
 const fFx = gui.addFolder('screen');
 fFx.add(params, 'distortion', -0.5, 1.2, 0.01).onChange(syncParams);
 fFx.add(params, 'aberration', 0, 0.03, 0.0005).onChange(syncParams);
@@ -590,6 +619,7 @@ fFx.add(params, 'grain', 0, 0.4, 0.005).onChange(syncParams);
 fFx.add(params, 'scanlines', 0, 0.4, 0.005).onChange(syncParams);
 fFx.add(params, 'glitchRate', 0, 4, 0.05);
 fFx.add(params, 'bgStatic', 0, 1, 0.01).name('bg static');
+fFx.close();
 const fCam = gui.addFolder('camera (G)');
 fCam.add(params, 'gaze', 0, 2, 0.01).name('gaze strength').onChange((v) => { gaze.strength = v; });
 fCam.add(gaze.moveXY, 'x', 0, 2, 0.01).name('move x');
@@ -598,34 +628,28 @@ fCam.add(gaze, 'lerpSpeed', 0.005, 0.3, 0.005).name('follow speed');
 fCam.add(gaze, 'deltaRotate', 0, 20, 0.1).name('swipe roll (deg)');
 fCam.add(gaze, 'wobbleStrength', 0, 1, 0.01).name('wobble');
 fCam.add(gaze, 'wobbleSpeed', 0, 5, 0.01).name('wobble speed');
+fCam.close();
 const fAudio = gui.addFolder('music');
 fAudio.add({ 'play / pause (P)': () => toggleDeck() }, 'play / pause (P)');
 fAudio.add({ 'next song (N)': () => { player.next(); refreshDeck(player); } }, 'next song (N)');
-fAudio.add(params, 'reactivity', 0, 2.5, 0.01);
-fAudio.add(params, 'orcaPanels', 0, 6, 1).name('orca panels').onFinishChange(() => syncLayout());
-fAudio.add(params, 'cotPanels', 0, 4, 1).name('cot panels').onFinishChange(() => syncLayout());
-fAudio.add(params, 'pixelPanels', 0, 4, 1).name('pixel whale').onFinishChange(() => syncLayout());
-fAudio.add(params, 'divePanels', 0, 4, 1).name('dive whale').onFinishChange(() => syncLayout());
+fAudio.add(params, 'reactivity', 0, 2.5, 0.01).name('跟拍').onFinishChange(saveRingPrefs);
 fAudio.add(params, 'orcaOverlay').name('lyrics (O)').onChange(syncOverlay).listen();
-const fShuffle = fAudio.addFolder('beat shuffle');
-fShuffle.add(params, 'beatShuffle').name('on (B)').listen();
-fShuffle.add(params, 'shuffleEvery', [1, 2, 4, 8, 16]).name('every n beats');
-fShuffle.add(params, 'shuffleAmount', 0, 1, 0.01).name('amount');
-fShuffle.add(params, 'shuffleGlide', 0, 1, 0.01).name('glide (s)');
+fAudio.add(params, 'shuffleAmount', 0, 1, 0.01).name('乱切幅度');
+fAudio.add(params, 'shuffleGlide', 0, 1, 0.01).name('乱切过渡 (s)');
+fAudio.close();
 gui.add(params, 'keyBlack').name('key black bg').onChange(syncParams);
-gui.add({ reshuffle: buildPanels }, 'reshuffle');
 
 function syncOverlay() {
   document.getElementById('deck').classList.toggle('hidden', !params.orcaOverlay);
 }
 
 addEventListener('keydown', (e) => {
-  if (showGui && (e.key === 'h' || e.key === 'H')) gui.show(gui._hidden);
+  if (e.key === 'h' || e.key === 'H') gui.show(gui._hidden);
   if (e.key === ' ') buildPanels();
   if (e.key === 'p' || e.key === 'P') toggleDeck();
   if (e.key === 'n' || e.key === 'N') { player.next(); refreshDeck(player); }
   if (e.key === 'o' || e.key === 'O') { params.orcaOverlay = !params.orcaOverlay; syncOverlay(); }
-  if (e.key === 'b' || e.key === 'B') params.beatShuffle = !params.beatShuffle;
+  if (e.key === 'b' || e.key === 'B') { params.beatShuffle = !params.beatShuffle; saveRingPrefs(); }
   if (e.key === 'g' || e.key === 'G') gaze.active ? gaze.still(600) : gaze.orbit(1000);
 });
 // first click anywhere outside the GUI starts the set (browsers need a gesture for audio)
