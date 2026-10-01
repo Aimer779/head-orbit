@@ -13,7 +13,7 @@ node serve.mjs
 
 http://127.0.0.1:5184/ 。点画面开始。`?gui` 开参数。
 
-音轨是 Mili《world.execute(me);》伴奏，130 BPM，第一拍在 0.46s。格子 16 分音符跟 `audio.currentTime` 对齐，不再用独立的 Tone 时钟。
+音轨是 Mili《world.execute(me);》人声版，130 BPM，第一拍在 5.31s（片头静音约 5.2s）。格子 16 分音符跟 `audio.currentTime` 对齐，不再用独立的 Tone 时钟。词曲与录音版权归 @ProjectMili 及原权利人所有；本页非营利、非官方，含 AI 生成画面。完整署名见 `docs/music.md`，右下角 credits 也有同一段。规约：https://projectmili.com/copyright-guidelines
 
 ## 你丢图的地方
 
@@ -28,7 +28,7 @@ http://127.0.0.1:5184/ 。点画面开始。`?gui` 开参数。
    - 像素鲸来自 [lhh010/dsh-ui-whale](https://github.com/lhh010/dsh-ui-whale)（BSD-3-Clause），眨眼/摆尾/喷水/睡觉 Z 跟故事场面走。
    - 下潜 WebP 来自 [LeemanCheung/dsh-whale-animation](https://github.com/LeemanCheung/dsh-whale-animation)（MIT）。Dive 1.98s、Classic 10.5s，当前圈放完才切。思考/开机要 Dive，其它场面要 Classic。
 
-左下角是开机台。格子第一行不再写 Daft Punk，改成 `#.eat.rice.little.whale.#` 这类场面注释；两小节切一场时会改写成 persona.load / cot / not.cheap / deepsleep。鼓点仍是同一套 ORCA 引擎。外壳口令：点一下开饭 / 测完告诉我就行。P 停，N 下一碗，O 收起。
+左下角开机台改成《world.execute(me);》跟唱：上一行 / 当前英+中 / 下一行。时间轴来自官方 MV 字幕，再平移到本地人声版（片头静音）。ORCA 格子仍在后台画，给窗口环上的 live 面板用，页面上不再显示。口令：点一下开饭 / 测完告诉我就行。P 停，O 收起。歌词文件在 `assets/lyrics/`。
 
 窗口环以 404、蓝屏、Win98 报错、彩条、终端这类计算机画面为主。emoji 全场只钉两枚，换贴图不再抽新的。官方 wordmark 只在便宜货那一拍低权重出现。
 

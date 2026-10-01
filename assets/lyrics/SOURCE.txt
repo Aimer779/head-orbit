@@ -1,0 +1,19 @@
+Official timed lyrics for world.execute(me); by Mili.
+
+Source: ProjectMili official MV subtitles
+  https://www.youtube.com/watch?v=ESx_hy1n7HA
+  Tracks: en, zh-Hans, zh-CN, ja (YouTube "subtitles", not auto-captions)
+
+Files:
+  official.ESx_hy1n7HA.en.vtt
+  official.ESx_hy1n7HA.zh-Hans.vtt
+  official.ESx_hy1n7HA.zh-CN.vtt
+  official.ESx_hy1n7HA.ja.vtt
+  world-execute-me.json   aligned cues (en/zh/ja), times on the official MV clock
+  world-execute-me.txt    English lines only
+
+Local mix pads ~4.85s of silence before the official first kick (0.46s).
+Runtime: localTime = officialTime + (SOUNDTRACK.offset - 0.46).
+
+Lyrics, composition, and recording © ProjectMili and original rights holders.
+Non-profit unofficial remix. See docs/music.md.

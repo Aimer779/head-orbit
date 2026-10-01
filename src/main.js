@@ -16,7 +16,8 @@ import { OrcaPlayer, SOUNDTRACK } from './audio.js';
 import { GazeCamera } from './gaze.js';
 import { loadContent, applyCredits, content } from './content.js';
 import { drawPlaceholderCharacter } from './placeholder-character.js';
-import { mountDeck, refreshDeck } from './deck.js';
+import { mountDeck, refreshDeck, tickDeck } from './deck.js';
+import { loadLyrics } from './lyrics.js';
 
 // ---------------------------------------------------------------------------
 // params (tweak live via the GUI, open with ?gui and press H to hide it)
@@ -42,7 +43,7 @@ const params = {
   cotPanels: 1,         // live CoT window on the ring
   pixelPanels: 1,       // lhh010 pixel whale
   divePanels: 1,        // Harness dive / classic webp
-  orcaOverlay: true,    // the grid itself, bottom-left (O)
+  orcaOverlay: true,    // lyrics overlay, bottom-left (O)
   beatShuffle: true,    // re-roll the look on the beat (B)
   shuffleEvery: 4,      // beats between re-rolls
   shuffleAmount: 0.6,   // 0 = stay on the values above, 1 = anywhere in SHUFFLE ranges
@@ -85,7 +86,9 @@ function showSoundtrack() {
   document.getElementById('song-title').textContent = SOUNDTRACK.title;
   const artist = document.getElementById('song-artist');
   artist.textContent = SOUNDTRACK.artist;
-  artist.removeAttribute('href');
+  artist.href = 'https://projectmili.com/';
+  artist.target = '_blank';
+  artist.rel = 'noopener';
 }
 showSoundtrack();
 player.on('song', () => {
@@ -603,7 +606,7 @@ fAudio.add(params, 'orcaPanels', 0, 6, 1).name('orca panels').onFinishChange(() 
 fAudio.add(params, 'cotPanels', 0, 4, 1).name('cot panels').onFinishChange(() => syncLayout());
 fAudio.add(params, 'pixelPanels', 0, 4, 1).name('pixel whale').onFinishChange(() => syncLayout());
 fAudio.add(params, 'divePanels', 0, 4, 1).name('dive whale').onFinishChange(() => syncLayout());
-fAudio.add(params, 'orcaOverlay').name('orca grid (O)').onChange(syncOverlay).listen();
+fAudio.add(params, 'orcaOverlay').name('lyrics (O)').onChange(syncOverlay).listen();
 const fShuffle = fAudio.addFolder('beat shuffle');
 fShuffle.add(params, 'beatShuffle').name('on (B)').listen();
 fShuffle.add(params, 'shuffleEvery', [1, 2, 4, 8, 16]).name('every n beats');
@@ -742,6 +745,7 @@ function tick() {
   for (const k in env) env[k] *= Math.exp(-DECAY[k] * dt);
   const lv = player.update();
   player.syncClock();
+  tickDeck(player);
   easeLook(dt);
 
   panelGroup.rotation.y += params.rotationSpeed * dt * (1 + R * (lv.low * 1.4 + env.kick * 1.2));
@@ -813,7 +817,7 @@ addEventListener('resize', resize);
 await loadContent();
 applyCharacterSpec();
 applyCredits();
-await Promise.all([loadPanelImages(), loadPixelWhale(), loadDiveWhale()]);
+await Promise.all([loadPanelImages(), loadPixelWhale(), loadDiveWhale(), loadLyrics().catch((err) => console.warn('[lyrics]', err))]);
 setPixelMoodFromScene(storyScene().id);
 requestDiveFromScene(storyScene().id);
 buildPanels();

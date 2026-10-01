@@ -1,4 +1,12 @@
 world-execute-me.mp3
-  Extracted from assets/【Mili】world.execute(me);__伴奏_（有字幕）(720P).mp4
-  Track: world.execute(me); by Mili (instrumental / 伴奏).
-  Local remix only.
+  Extracted from
+  E:\Downloads\Claude用代码搓了13015帧4K视频然后吃了你13亿Token_哔哩哔哩_bilibili\
+  Claude用代码搓了13015帧4K视频然后吃了你13亿Token(720P) (1).mp4
+  Track: world.execute(me); by Mili (vocal mix).
+  Source video ~3:36.93, AAC 48 kHz stereo 205 kb/s; MP3 libmp3lame -q:a 2 ~189 kb/s, 5.0 MB.
+  Clock: 130 BPM, first downbeat offset 5.31s (intro pad before kick).
+  Local remix only. Source MP4 is not in this repo.
+  Lyrics, composition, and recording © ProjectMili and original rights holders.
+  Non-profit unofficial remix; visuals include AI-generated art.
+  Guidelines: https://projectmili.com/copyright-guidelines
+  Credit copy: docs/music.md

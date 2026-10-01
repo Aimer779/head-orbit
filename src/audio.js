@@ -12,7 +12,8 @@ export const SOUNDTRACK = {
   artist: 'Mili',
   file: 'world-execute-me.mp3',
   bpm: 130,
-  offset: 0.46,
+  // vocal mix: ~5.2s of silence, first kick at 5.32s on the decoded MP3
+  offset: 5.31,
 };
 
 const THEME = { background: '#000000', f_high: '#e8eef2', f_med: '#8aa8b0', f_low: '#3a4a52', f_inv: '#071018', b_high: '#cfe8ec', b_med: '#7ad4de', b_low: '#1c2a36', b_inv: '#e6c07a' };

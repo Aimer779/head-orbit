@@ -18,11 +18,20 @@
     #deck header { padding: 0 1px 6px; color: #7ad4de; letter-spacing: 0.04em; }
     #deck header strong { font-weight: 600; }
     #deck header span { color: #8aa8b0; }
-    #orca { width: 100%; height: auto; display: block; cursor: pointer; }
+    #orca { display: none; }
+    #deck-lyrics { min-height: 5.6em; padding: 2px 1px 4px; }
+    #deck-lyrics .lyric { margin: 0; min-height: 1.2em; }
+    #deck-lyrics .dim { opacity: 0.55; font-size: 12px; color: #cfe8ec;
+      font-family: "Input Mono", "Menlo", "Consolas", monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #deck-lyrics .now { margin: 0.28em 0; color: #e8eef2; }
+    #deck-lyrics .now .en { display: block; font: 600 17px/1.25 "Input Mono", "Menlo", "Consolas", monospace; letter-spacing: 0.01em; }
+    #deck-lyrics .now .zh { display: block; margin-top: 0.2em; font-size: 12px; color: #7ad4de; }
+    #deck-lyrics .now.keyword .en { color: #e6c07a; letter-spacing: 0.14em; }
     #deck footer { padding-top: 6px; color: #8aa8b0; font-size: 11px; }
     #deck-bowl { color: #e6c07a; letter-spacing: 0.12em; }
     #deck-hint { opacity: 0.55; }
     #credits { position: fixed; right: 16px; bottom: 16px; margin: 0; text-align: right;
+      max-width: min(36vw, 22rem);
       font: 11px/1.6 "Input Mono", "Menlo", "Consolas", monospace; color: #fff;
       mix-blend-mode: screen; opacity: 0.6; pointer-events: none; user-select: none; }
     #credits dt { display: inline; opacity: 0.55; }
@@ -30,10 +39,17 @@
     #credits dd::after { content: ""; display: block; }
     #credits a { color: inherit; text-decoration: none; pointer-events: auto; }
     #credits a:hover { text-decoration: underline; }
+    #credits dt.music-notice { display: block; margin-top: 0.7em; letter-spacing: 0.04em; }
+    #credits dd.music-notice {
+      display: block; margin: 0.2em 0 0; font-size: 10px; line-height: 1.45; opacity: 0.92;
+      font-family: "Microsoft YaHei", "Noto Sans SC", "PingFang SC", "Input Mono", monospace;
+    }
+    #credits dd.music-notice::after { content: none; }
     @media (max-width: 640px) {
-      #credits { font-size: 9px; }
+      #credits { font-size: 9px; max-width: 46vw; bottom: 12px; right: 10px; }
       #credits dt { display: block; }
       #credits dd { margin: 0 0 0.4em; }
+      #credits dd.music-notice { font-size: 8px; line-height: 1.4; }
     }
   </style>
   <script type="importmap">
@@ -50,10 +66,15 @@
 <body>
   <aside id="deck">
     <header>
-      <strong id="deck-title">PERSONA_LOAD</strong>
+      <strong id="deck-title">world.execute(me);</strong>
       <span id="deck-line">点一下开饭</span>
     </header>
-    <div id="deck-grid"></div>
+    <div id="deck-lyrics">
+      <p id="lyric-prev" class="lyric dim"></p>
+      <p id="lyric-now" class="lyric now"><span class="en">world.execute(me);</span><span class="zh">点一下开饭</span></p>
+      <p id="lyric-next" class="lyric dim">Switch on the power line</p>
+    </div>
+    <div id="deck-grid" hidden></div>
     <footer>
       <span id="deck-bowl">・・・・・・・・</span>
       <span id="deck-hint">点网格或画面开饭</span>
@@ -65,7 +86,9 @@
     <dt>art</dt><dd id="page-title">上善无形 / ZipZipPipe</dd>
     <dt>pixel</dt><dd><a href="https://github.com/lhh010/dsh-ui-whale" target="_blank" rel="noopener">lhh010</a></dd>
     <dt>dive</dt><dd><a href="https://github.com/LeemanCheung/dsh-whale-animation" target="_blank" rel="noopener">LeemanCheung</a></dd>
-    <dt id="song-title">world.execute(me);</dt><dd id="song-artist">Mili</dd>
+    <dt>music</dt><dd><a id="song-artist" href="https://projectmili.com/" target="_blank" rel="noopener">Mili</a> 「<span id="song-title">world.execute(me);</span>」</dd>
+    <dt class="music-notice">【音乐】</dt>
+    <dd class="music-notice">Mili「world.execute (me) ;」，词曲与录音的版权归 <a href="https://www.youtube.com/@ProjectMili" target="_blank" rel="noopener">@ProjectMili</a> 及原权利人所有。本页是非营利的个人二次创作，不用于任何商业用途，也不是官方作品。依据 <a href="https://projectmili.com/copyright-guidelines" target="_blank" rel="noopener">Mili Copyright Guidelines</a> 制作并标注 AI 生成。</dd>
   </dl>
   <script type="module" src="src/main.js"></script>
 </body>

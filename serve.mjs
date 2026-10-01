@@ -24,6 +24,7 @@ const types = {
   ".mp3": "audio/mpeg",
   ".mp4": "video/mp4",
   ".ogg": "audio/ogg",
+  ".vtt": "text/vtt; charset=utf-8",
 };
 
 function resolveFile(urlPath) {
