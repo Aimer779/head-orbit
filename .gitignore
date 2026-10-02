@@ -1,1 +1,4 @@
 node_modules
+
+# Source reference video — not redistributed (see assets/audio/SOURCE.txt)
+assets/*.mp4
