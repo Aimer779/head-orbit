@@ -1,4 +1,25 @@
 node_modules
 
-# Source reference video — not redistributed (see assets/audio/SOURCE.txt)
+# Third-party media stays local only.
+# Provenance and licensing for each source: assets/*/SOURCE.txt, docs/music.md
+
+# Source reference video
 assets/*.mp4
+
+# Soundtrack — Mili, © ProjectMili and the original rights holders
+assets/audio/*.mp3
+
+# Official MV subtitles and the lyric cues aligned to them
+assets/lyrics/official.*.vtt
+assets/lyrics/world-execute-me.json
+assets/lyrics/world-execute-me.txt
+
+# Character art — credited to 上善无形 / ZipZipPipe
+assets/character.png
+assets/character-tear.png
+
+# DeepSeek logo artwork (trademark stays with DeepSeek) and model marks
+assets/brand/logo.png
+assets/brand/logo.svg
+assets/brand/whale.png
+assets/brand/models/*.svg
